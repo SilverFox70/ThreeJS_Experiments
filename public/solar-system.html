@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Solar System Visualization</title>
+	<style>
+		body { margin: 0; }
+		canvas { display: block; }
+	</style>
+
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script type="module" src="./src/solarSystemScript.js" ></script>
+	<!-- <script>
+		let scene, camera, renderer;
+		const planets = [];
+
+		init();
+		animate();
+
+		function init() {
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      // Set the camera position
+      camera.position.set(0, 90 * Math.sin(Math.PI / 6), 35 * Math.cos(Math.PI / 6));
+      camera.lookAt(scene.position);
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+
+
+			camera.position.z = 50;
+
+			sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, emissive: 0xffff00 });
+      const sun = new THREE.Mesh(
+          new THREE.SphereGeometry(3, 32, 32),
+          sunMaterial
+        );
+
+
+			scene.add(sun);
+
+      // Add a point light at the center of the sun
+      // const sunLight = new THREE.PointLight(0xffffff, 1.5, 0, 1);
+      // sun.add(sunLight);
+
+
+      const distanceMap = {
+        mercury: 5,
+        venus: 8,
+        earth: 12,
+        mars: 16,
+        jupiter: 24,
+        saturn: 34,
+        uranus: 44,
+        neptune: 52
+      };
+
+			const mercury = createPlanet(0.2, 0x8c8c8c, distanceMap.mercury, null);
+			const venus = createPlanet(0.5, 0xffbf80, distanceMap.venus, null);
+			const earth = createPlanet(0.5, 0x4da6ff, distanceMap.earth, null);
+			const mars = createPlanet(0.3, 0xff4d4d, distanceMap.mars, null);
+			const jupiter = createPlanet(1.7, 0xffa64d, distanceMap.jupiter, null);
+			const saturn = createPlanet(1.4, 0xffd24d, distanceMap. saturn, null);
+			const uranus = createPlanet(0.8, 0x66b2ff, distanceMap.uranus, null);
+			const neptune = createPlanet(0.8, 0x1a53ff, distanceMap.neptune, null);
+
+      Object.keys(distanceMap).forEach(planet => {
+        console.log(`distanceMap[${planet}]: ${distanceMap[planet]}`);
+        createOrbit(distanceMap[planet]);
+      })
+
+			const light = new THREE.PointLight(0xffffff, 1.5);
+			scene.add(light);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.25); // color, intensity
+      scene.add(ambientLight);
+
+			function createPlanet(size, color, distance) {
+				const planet = new THREE.Mesh(
+					new THREE.SphereGeometry(size, 32, 32),
+					new THREE.MeshLambertMaterial({ color })
+				);
+				planet.position.set(distance, 0, 0);
+				planet.distance = distance;
+				planet.speed = 1 / distance;
+				scene.add(planet);
+				planets.push(planet);
+				return planet;
+			}
+		
+    // function createOrbit(distance) {
+    //   const orbitGeometry = new THREE.CircleGeometry(distance, 100);
+    //   // orbitGeometry.vertices.shift(); // remove the center vertex
+    //   console.log("orbitGeometry", orbitGeometry);
+    //   const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5});
+    //   const orbit = new THREE.LineLoop(orbitGeometry, orbitMaterial);
+    //   orbit.rotation.x = Math.PI / 2; // Rotate the orbit to align with the x-axis
+    //   scene.add(orbit);
+    //   return orbit;
+    // }
+
+    function createOrbit(distance) {
+      const circleGeometry = new THREE.CircleGeometry(distance, 100);
+      circleGeometry.deleteAttribute('normal');
+      circleGeometry.deleteAttribute('uv');
+      circleGeometry.deleteAttribute('color');
+      const positionAttribute = circleGeometry.getAttribute('position');
+      const newPositionArray = new Float32Array(positionAttribute.array.length - 3);
+      newPositionArray.set(positionAttribute.array.subarray(3));
+      const orbitGeometry = new THREE.BufferGeometry();
+      orbitGeometry.setAttribute('position', new THREE.BufferAttribute(newPositionArray, 3));
+      const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5 });
+      const orbit = new THREE.LineLoop(orbitGeometry, orbitMaterial);
+      orbit.rotation.x = Math.PI / 2; // Rotate the orbit to align with the x-axis
+      scene.add(orbit);
+      return orbit;
+    }
+  }
+
+
+
+		function animate() {
+			requestAnimationFrame(animate);
+			const time = performance.now() * 0.001;
+			planets.forEach(planet => {
+				planet.rotation.y += 0.005;
+				const angle = time * planet.speed;
+				planet.position.set(
+					planet.distance * Math.cos(angle),
+					0,
+					planet.distance * Math.sin(angle)
+				);
+			});
+			renderer.render(scene, camera);
+		}
+	</script> -->
+</body>
+</html>
