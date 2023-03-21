@@ -1,7 +1,7 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
-// import { createPlanet } from './solarSystemElements.js';
-import planetData from './data/planet_data.js';
+// import jupiterTexture from './media/2k_jupiter.jpeg';
+import planetData from './data/planet_data_scaled.js';
 
 const planets = [];
 
@@ -33,7 +33,7 @@ animate();
 
 function createPlanets(planetData) {
   Object.keys(planetData).forEach(planet => {
-    console.log(`${planet}: ${JSON.stringify(planetData[planet])}`);
+    console.log(`data ${planet}: ${JSON.stringify(planetData[planet])}`);
     const currentPlanet = createPlanet(planetData[planet]);
     scene.add(currentPlanet);
     planets.push(currentPlanet);
@@ -52,14 +52,29 @@ function createSun() {
 }
 
 function createPlanet(planetData) {
+  let material;
   const color = planetData.color;
+  console.log("color: ", color);
+  const geometry = new THREE.SphereGeometry(planetData.size, 32, 32);
+  if (planetData.texture) {
+    material = new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load(
+        `src/media/${planetData.texture}`
+      )
+    });
+  } else {
+    // Fall back if we don't have a texture to load
+    material = new THREE.MeshLambertMaterial({ color });
+  }
   const planet = new THREE.Mesh(
-    new THREE.SphereGeometry(planetData.size, 32, 32),
-    new THREE.MeshLambertMaterial({ color })
+    geometry,
+    material
   );
   planet.position.set(planetData.distance, 0, 0);
   planet.distance = planetData.distance;
-  planet.speed = 1 / planetData.distance;
+  planet.speed = 1 / planetData.orbitalPeriod;
+  planet.rotationSpeed = ((2 * Math.PI) / (planetData.rotationPeriod)) / 100;
+  console.log(`rotationSpeed: ${planet.rotationSpeed}`);
   return planet;
 }
 
@@ -103,8 +118,8 @@ function animate() {
   requestAnimationFrame(animate);
   const time = performance.now() * 0.001;
   planets.forEach(planet => {
-    planet.rotation.y += 0.005;
-    const angle = time * planet.speed;
+    planet.rotation.y += planet.rotationSpeed;
+    const angle = time * planet.speed * -1;
     planet.position.set(
       planet.distance * Math.cos(angle),
       0,
