@@ -1,7 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
-// import jupiterTexture from './media/2k_jupiter.jpeg';
-import planetData from './data/planet_data_scaled.js';
+import planetData from './data/planet_data.js';
 
 const planets = [];
 
@@ -31,8 +30,13 @@ scene.add(ambientLight);
 init();
 animate();
 
+function capitalize(word) {
+  return word[0].toUpperCase() + word.slice(1).toLowerCase();
+}
+
 function createPlanets(planetData) {
   Object.keys(planetData).forEach(planet => {
+    planetData[planet].name = capitalize(planet);
     console.log(`data ${planet}: ${JSON.stringify(planetData[planet])}`);
     const currentPlanet = createPlanet(planetData[planet]);
     scene.add(currentPlanet);
@@ -72,11 +76,38 @@ function createPlanet(planetData) {
   );
   planet.position.set(planetData.distance, 0, 0);
   planet.distance = planetData.distance;
-  planet.speed = 1 / planetData.orbitalPeriod;
-  planet.rotationSpeed = ((2 * Math.PI) / (planetData.rotationPeriod)) / 100;
-  console.log(`rotationSpeed: ${planet.rotationSpeed}`);
+  planet.speed = (1 / planetData.orbitalPeriod) * 100;
+  planet.rotationSpeed = planetData.name === "Saturn" ? 0 :((2 * Math.PI) / (planetData.rotationPeriod)) / 100;
+
+  if (planetData.name === "Saturn") {
+  const rings = createSaturnRings();
+  planet.add(rings);
+  }
+
   return planet;
 }
+
+function createSaturnRings() {
+  const innerRadius = 1.9; // Adjust this value to change the inner radius of the rings
+  const outerRadius = 3.5; // Adjust this value to change the outer radius of the rings
+  const segments = 64;
+
+  const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, segments);
+  // Apply cylindrical UV mapping
+  const uvAttribute = ringGeometry.getAttribute('uv');
+  const positionAttribute = ringGeometry.getAttribute('position');
+  const ringTexture = new THREE.TextureLoader().load('src/media/2k_saturn_ring_alpha.png');
+  const ringMaterial = new THREE.MeshBasicMaterial({
+    map: ringTexture,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const rings = new THREE.Mesh(ringGeometry, ringMaterial);
+  rings.rotation.x = Math.PI / 2; // Rotate the rings to align with the x-axis
+
+  return rings;
+}
+
 
 function createOrbit(distance) {
   const circleGeometry = new THREE.CircleGeometry(distance, 100);
