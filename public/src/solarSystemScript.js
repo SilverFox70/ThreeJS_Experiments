@@ -1,8 +1,12 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
+import Stats from 'https://unpkg.com/three@0.112/examples/jsm/libs/stats.module.js';
 import planetData from './data/planet_data.js';
 
 const planets = [];
+const stats = new Stats();
+const container = document.getElementById( 'container' );
+container.appendChild( stats.dom );
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -77,7 +81,7 @@ function createPlanet(planetData) {
   planet.position.set(planetData.distance, 0, 0);
   planet.distance = planetData.distance;
   planet.speed = (1 / planetData.orbitalPeriod) * 100;
-  planet.rotationSpeed = planetData.name === "Saturn" ? 0 :((2 * Math.PI) / (planetData.rotationPeriod)) / 100;
+  planet.rotationSpeed = ((2 * Math.PI) / (planetData.rotationPeriod)) / 100;
 
   if (planetData.name === "Saturn") {
   const rings = createSaturnRings();
@@ -163,6 +167,8 @@ function animate() {
       planet.distance * Math.sin(angle)
     );
   });
+
+  stats.update();
   renderer.render(scene, camera);
 }
 
