@@ -1,10 +1,12 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 import { OrbitControls } from "https://unpkg.com/three@0.112/examples/jsm/controls/OrbitControls.js";
 import { FontLoader } from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js";
-import { TTFLoader } from "https://unpkg.com/three@0.112/examples/jsm/loaders/TTFLoader.js";
+// import { TTFLoader } from "https://unpkg.com/three@0.112/examples/jsm/loaders/TTFLoader.js";
+import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.esm.min.js';
 
 
-let orbitControls, renderer, camera, scene;
+let orbitControls, renderer, camera, scene, cameraStartPosition;
+let theta = 0;
 
 function createTextMesh(text, chevron) {
   const loader = new FontLoader();
@@ -26,20 +28,20 @@ function createTextMesh(text, chevron) {
     const chevronBox = new THREE.Box3().setFromObject(chevron);
     const chevronCenter = new THREE.Vector3();
     chevronBox.getCenter(chevronCenter);
-    console.log("chevronCenter: ", chevronCenter);
+    // console.log("chevronCenter: ", chevronCenter);
 
     // Calculate the text's bounding box
     const textBox = new THREE.Box3().setFromObject(textMesh);
     const textCenter = new THREE.Vector3();
     textBox.getCenter(textCenter);
-    console.log("textCenter: ", textCenter);
+    // console.log("textCenter: ", textCenter);
 
     const relativePosition = new THREE.Vector3(
       chevronCenter.x - textCenter.x,
       chevronCenter.y - textCenter.y + 0.25,
       0.1
     );
-    console.log("relativePosition: ", relativePosition);
+    // console.log("relativePosition: ", relativePosition);
 
     textMesh.position.set(relativePosition.x, relativePosition.y, relativePosition.z);
     scene.add(textMesh);
@@ -87,6 +89,9 @@ function createChevron(originX, originY, color) {
 function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  // Setting the cameras start position just after instantiation 0,0,0
+  // so camera will move away from origin when Tweened.
+  cameraStartPosition = camera.position.clone();
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -109,6 +114,9 @@ function init() {
   scene.add(chevron2);
   scene.add(chevron3);
   scene.add(chevron4);
+  animateCameraToTarget(chevron1);
+  // setTimeout(() => {animateCameraToPositionWithRotation(camera, {x:0, y:0, z:5});}, 2000);
+  // animateCameraToPositionWithRotation(camera, {x:0, y:0, z:5});
 
   const light = new THREE.PointLight(0xffffff, 1, 100);
   light.position.set(0, 0, 10);
@@ -119,16 +127,64 @@ function init() {
   scene.add(ambientLight);
 
   camera.position.z = 3;
+  camera.lookAt(scene);
 }
 
 function animate() {
   requestAnimationFrame(animate);
-
+  // orbitControls.update();
+  // theta += 0.1;
+  // camera.rotation.set(0,0, theta);
+  // console.log("camera.rotation: ", camera.rotation);
+  
   // Update the controls for each frame
-  orbitControls.update();
+  TWEEN.update();
 
   // Render the scene
   renderer.render(scene, camera);
+}
+
+function animateCameraToTarget(target) {
+  const cameraEndPosition = new THREE.Vector3().copy(target.position).add(new THREE.Vector3(0, 0, 5));
+  const tween = new TWEEN.Tween(cameraStartPosition)
+    .to(cameraEndPosition, 2000)
+    .easing(TWEEN.Easing.Quadratic.InOut)
+    .onUpdate(() => {
+      camera.position.copy(cameraStartPosition);
+    })
+    .onComplete(() => {
+      // orbitControls.target = target.position;
+    })
+    .start();
+}
+
+function animateCameraToPositionWithRotation(camera, position, rotationAngle = Math.PI / 2) {
+  const cameraEndPosition = new THREE.Vector3(position.x, position.y, position.z);
+  const localCameraStartPosition = camera.position.clone();
+  const camEuler = camera.rotation.clone();
+  console.log("camEuler:" , camEuler._z);
+  const initialRotationZ = {z: camEuler._z};
+  const endRotation = {z: initialRotationZ.z + rotationAngle};
+
+  const positionTween = new TWEEN.Tween(localCameraStartPosition)
+    .to(cameraEndPosition, 2000)
+    .easing(TWEEN.Easing.Quadratic.InOut)
+    .onUpdate(() => {
+      camera.position.copy(localCameraStartPosition);
+    })
+    .onComplete(() => {
+      // orbitControls.target = position;
+    })
+    .start();
+  
+  const rotationTween = new TWEEN.Tween(initialRotationZ)
+    .to(endRotation, 2000)
+    .easing(TWEEN.Easing.Quadratic.InOut)
+    .onUpdate(function () {
+      console.log('initialRotation:', initialRotationZ);
+      camera.rotation.set(0, 0, initialRotationZ.z);
+    })
+    .start();
 }
 
 // Debounce function to limit the rate at which a function can be called
