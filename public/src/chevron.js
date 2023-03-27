@@ -94,6 +94,7 @@ function init() {
   cameraStartPosition = camera.position.clone();
 
   renderer = new THREE.WebGLRenderer();
+  renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
@@ -114,9 +115,10 @@ function init() {
   scene.add(chevron2);
   scene.add(chevron3);
   scene.add(chevron4);
-  animateCameraToTarget(chevron1);
-  // setTimeout(() => {animateCameraToPositionWithRotation(camera, {x:0, y:0, z:5});}, 2000);
-  // animateCameraToPositionWithRotation(camera, {x:0, y:0, z:5});
+  // animateCameraToTarget(chevron1);
+  animateCameraToPositionWithRotation(camera, {x:0, y:0, z:5}, 0);
+  const rotAngle = (Math.PI / 2) * -1; 
+  setTimeout(() => {animateCameraToPositionWithRotation(camera, {x:-2, y:0, z:1}, rotAngle);}, 2000);
 
   const light = new THREE.PointLight(0xffffff, 1, 100);
   light.position.set(0, 0, 10);
@@ -162,7 +164,6 @@ function animateCameraToPositionWithRotation(camera, position, rotationAngle = M
   const cameraEndPosition = new THREE.Vector3(position.x, position.y, position.z);
   const localCameraStartPosition = camera.position.clone();
   const camEuler = camera.rotation.clone();
-  console.log("camEuler:" , camEuler._z);
   const initialRotationZ = {z: camEuler._z};
   const endRotation = {z: initialRotationZ.z + rotationAngle};
 
@@ -181,7 +182,7 @@ function animateCameraToPositionWithRotation(camera, position, rotationAngle = M
     .to(endRotation, 2000)
     .easing(TWEEN.Easing.Quadratic.InOut)
     .onUpdate(function () {
-      console.log('initialRotation:', initialRotationZ);
+      // console.log('initialRotation:', initialRotationZ);
       camera.rotation.set(0, 0, initialRotationZ.z);
     })
     .start();

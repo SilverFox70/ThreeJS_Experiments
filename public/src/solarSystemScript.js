@@ -14,11 +14,14 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.set(0, 90 * Math.sin(Math.PI / 6), 35 * Math.cos(Math.PI / 6));
 camera.lookAt(scene.position);
 const renderer = new THREE.WebGLRenderer();
+renderer.setPixelRatio( window.devicePixelRatio );
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Add OrbitControls
 const orbitControls = new OrbitControls(camera, renderer.domElement);
+orbitControls.minDistance = 15;
+orbitControls.maxDistance = 200;
 orbitControls.enabled = true;
 
 camera.position.z = 50;
@@ -151,6 +154,7 @@ function createOrbit(distance) {
 // }
 
 function init() {
+
   createSun();  
   createPlanets(planetData);
 }
