@@ -27,7 +27,7 @@ orbitControls.enabled = true;
 camera.position.z = 50;
 
 // Add lights
-const light = new THREE.PointLight(0xffffff, 1.5); // color, intensity
+const light = new THREE.PointLight(0xffffff, 1); // color, intensity
 scene.add(light);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.25); // color, intensity
@@ -68,7 +68,7 @@ function createPlanet(planetData) {
   console.log("color: ", color);
   const geometry = new THREE.SphereGeometry(planetData.size, 32, 32);
   if (planetData.texture) {
-    material = new THREE.MeshBasicMaterial({
+    material = new THREE.MeshLambertMaterial({
       map: new THREE.TextureLoader().load(
         `src/media/${planetData.texture}`
       )
@@ -107,7 +107,7 @@ function createSaturnRings() {
     v3.fromBufferAttribute(pos, i);
     ringGeometry.attributes.uv.setXY(i, v3.length() < (innerRadius + outerRadius) / 2 ? 0 : 1, 1);
   }
-  const ringMaterial = new THREE.MeshBasicMaterial({
+  const ringMaterial = new THREE.MeshLambertMaterial({
     map: ringTexture,
     alphaMap: ringTexture, // Add alphaMap property to use the texture's alpha channel
     color: 0xffffff,
