@@ -1,34 +1,23 @@
 // Super basic example of a "tumbling" cube.
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.esm.min.js';
 
 // Set up scene and camera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
+// Adjust this value to control the speed of the vibrations (lower value = slower vibrations)
+const vibrationSpeedFactor = 0.04; 
+
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
 
-// Create cube geometry
-const cubeGeometry = new THREE.BoxGeometry( 1, 1, 1 );
-const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
-const cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
-const cube2 = new THREE.Mesh( cubeGeometry, cubeMaterial );
-cube2.position.set(-10, -10, 0);
-scene.add( cube );
-scene.add( cube2 );
-
-// Create plane geometry
-// const planeGeometry = new THREE.PlaneGeometry(4, 4, 100, 100); // Width, height, widthSegments, heightSegments
-// const planeMaterial = new THREE.MeshLambertMaterial( { color: 0x00ff00 } );
-// const plane = new THREE.Mesh( planeGeometry, planeMaterial );
-// scene.add( plane );
-
 // Create particle systems with different materials
-const particleCount = 60000/3;
-const whiteMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+const particleCount = 120000/3;
+const whiteMaterial = new THREE.PointsMaterial({ color: 0xeeeeee, size: 0.1 });
 const lightGrayMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.15 });
-const darkGrayMaterial = new THREE.PointsMaterial({ color: 0x444444, size: 0.2 });
+const darkGrayMaterial = new THREE.PointsMaterial({ color: 0x444444, size: 0.2, opacity: 0.5 });
 
 const whiteParticles = createParticleSystem(particleCount, whiteMaterial);
 const lightGrayParticles = createParticleSystem(particleCount, lightGrayMaterial);
@@ -74,94 +63,108 @@ function chladniPattern(x, y, n, m, a, b) {
   return term1 + term2;
 }
 
+// Chladni pattern parameters
+const initialParams = { n: 1.4, m: 8, a: 1, b: 1 };
+const targetParams = { n: 3, m: 2, a: 1.5, b: 1.5 };
+const tweenDuration = 5000; // Duration in milliseconds
+
+const tween = new TWEEN.Tween(initialParams)
+  .to(targetParams, tweenDuration)
+  .easing(TWEEN.Easing.Quadratic.InOut)
+  .yoyo(true)
+  .repeat(Infinity)
+  .start();
+
+let lastVibrationTime = Date.now();
 
 // Animate the scene so that we can see it.
-function animate() {
-  requestAnimationFrame(animate);
-
-  // Chladni pattern parameters
-  const n = 1.4;
-  const m = 7.1;
-  const a = 1;
-  const b = 1;
-
+function animate(time) {
+  // How close to 0 the Chladni return must be in order for the particle to be visible
   const tolerance = 0.3;
 
-  let whiteIndex = 0;
-  let lightGrayIndex = 0;
-  let darkGrayIndex = 0;
+  requestAnimationFrame(animate);
 
-  for (let x = 0; x < gridSize; x += stepSize) {
-    for (let y = 0; y < gridSize; y += stepSize) {
-      const value = chladniPattern(x / gridSize, y / gridSize, n, m, a, b);
-      const absValue = Math.abs(value);
+  // Update tweens for the current frame
+  TWEEN.update(time);
 
-      let targetPositions;
-      let targetIndex;
-      let vibrationAmplitude;
+  const currentTime = Date.now();
+  const timeSinceLastVibration = currentTime - lastVibrationTime;
 
-      if (absValue < 0.1) {
-        targetPositions = whiteParticles.geometry.attributes.position.array;
-        targetIndex = whiteIndex;
-        whiteIndex += 4;
-        vibrationAmplitude = 0.3;
-      } else if (absValue >= 0.1 && absValue < 0.15) {
-        targetPositions = lightGrayParticles.geometry.attributes.position.array;
-        targetIndex = lightGrayIndex;
-        lightGrayIndex += 4;
-        vibrationAmplitude = 0.5;
-      } else if (absValue >= 0.15 && absValue < 0.25) {
-        targetPositions = darkGrayParticles.geometry.attributes.position.array;
-        targetIndex = darkGrayIndex;
-        darkGrayIndex += 4;
-        vibrationAmplitude = 0.75;
-      } else {
-        continue;
-      }
+  if (timeSinceLastVibration > (1 / vibrationSpeedFactor)) {
+    // Update the particle positions
+    let whiteIndex = 0;
+    let lightGrayIndex = 0;
+    let darkGrayIndex = 0;
 
-      if (Math.abs(value) < tolerance) {
-        // Generate random displacements
-        const dx = (Math.random() - 0.5) * vibrationAmplitude;
-        const dy = (Math.random() - 0.5) * vibrationAmplitude;
+    for (let x = 0; x < gridSize; x += stepSize) {
+      for (let y = 0; y < gridSize; y += stepSize) {
+        const value = chladniPattern(x / gridSize, y / gridSize, initialParams.n, initialParams.m, initialParams.a, initialParams.b);
 
-        // Quadrant 1
-        targetPositions[targetIndex * 3] = x + dx;
-        targetPositions[targetIndex * 3 + 1] = y + dy;
-        targetPositions[targetIndex * 3 + 2] = 0;
-        targetIndex++;
+        const absValue = Math.abs(value);
 
-        // Quadrant 2
-        targetPositions[targetIndex * 3] = -x + dx;
-        targetPositions[targetIndex * 3 + 1] = y + dy;
-        targetPositions[targetIndex * 3 + 2] = 0;
-        targetIndex++;
+        let targetPositions;
+        let targetIndex;
+        let vibrationAmplitude;
 
-        // Quadrant 3
-        targetPositions[targetIndex * 3] = -x + dx;
-        targetPositions[targetIndex * 3 + 1] = -y + dy;
-        targetPositions[targetIndex * 3 + 2] = 0;
-        targetIndex++;
+        if (absValue < 0.1) {
+          targetPositions = whiteParticles.geometry.attributes.position.array;
+          targetIndex = whiteIndex;
+          whiteIndex += 4;
+          vibrationAmplitude = 0.3 * 2;
+        } else if (absValue >= 0.1 && absValue < 0.15) {
+          targetPositions = lightGrayParticles.geometry.attributes.position.array;
+          targetIndex = lightGrayIndex;
+          lightGrayIndex += 4;
+          vibrationAmplitude = 0.5 * 2;
+        } else if (absValue >= 0.15 && absValue < 0.25) {
+          targetPositions = darkGrayParticles.geometry.attributes.position.array;
+          targetIndex = darkGrayIndex;
+          darkGrayIndex += 4;
+          vibrationAmplitude = 0.75 * 2;
+        } else {
+          continue;
+        }
 
-        // Quadrant 4
-        targetPositions[targetIndex * 3] = x + dx;
-        targetPositions[targetIndex * 3 + 1] = -y + dy;
-        targetPositions[targetIndex * 3 + 2] = 0;
-        targetIndex++;
+        if (Math.abs(value) < tolerance) {
+          // Generate random displacements
+          const dx = (Math.random() - 0.5) * vibrationAmplitude;
+          const dy = (Math.random() - 0.5) * vibrationAmplitude;
+
+          // Quadrant 1
+          targetPositions[targetIndex * 3] = x + dx;
+          targetPositions[targetIndex * 3 + 1] = y + dy;
+          targetPositions[targetIndex * 3 + 2] = 0;
+          targetIndex++;
+
+          // Quadrant 2
+          targetPositions[targetIndex * 3] = -x + dx;
+          targetPositions[targetIndex * 3 + 1] = y + dy;
+          targetPositions[targetIndex * 3 + 2] = 0;
+          targetIndex++;
+
+          // Quadrant 3
+          targetPositions[targetIndex * 3] = -x + dx;
+          targetPositions[targetIndex * 3 + 1] = -y + dy;
+          targetPositions[targetIndex * 3 + 2] = 0;
+          targetIndex++;
+
+          // Quadrant 4
+          targetPositions[targetIndex * 3] = x + dx;
+          targetPositions[targetIndex * 3 + 1] = -y + dy;
+          targetPositions[targetIndex * 3 + 2] = 0;
+          targetIndex++;
+        }
       }
     }
+
+    // Update the particle systems
+    whiteParticles.geometry.attributes.position.needsUpdate = true;
+    lightGrayParticles.geometry.attributes.position.needsUpdate = true;
+    darkGrayParticles.geometry.attributes.position.needsUpdate = true;
+
+    // Update lastVibrationTime
+    lastVibrationTime = currentTime;
   }
-
-  // Update the particle system
-  // Update the particle systems
-  whiteParticles.geometry.attributes.position.needsUpdate = true;
-  lightGrayParticles.geometry.attributes.position.needsUpdate = true;
-  darkGrayParticles.geometry.attributes.position.needsUpdate = true;
-
-
-
-  // Optional: Rotate the Chladni plate for a more dynamic view
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
 
   renderer.render(scene, camera);
 }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Example Embeds</title>
+</head>
+<body>
+
+  <!-- 
+    HTML markup for handling Tweet embed. This example shows the method 
+    of copying and pasting the embed code directly from Twitter
+  -->
+  <div id="tweet-component">
+    <p>Loading tweet...</p>
+    <blockquote class="twitter-tweet">
+      <p lang="en" dir="ltr">We moved! We unveiled our new global headquarters 🏢 in Hudson Yards. 
+        <a href="https://twitter.com/NYCMayor?ref_src=twsrc%5Etfw">@NYCMayor</a> Adams, our CEO 
+        <a href="https://twitter.com/AlbertBourla?ref_src=twsrc%5Etfw">@AlbertBourla</a> &amp; 
+        other leaders participated in a ribbon cutting ceremony ✂️. Learn how Pfizer hopes to foster 
+        collaboration &amp; innovation w/ this new space: <a href="https://t.co/Ntk7r6XevH">https://t.co/Ntk7r6XevH</a> 
+        <a href="https://t.co/VHTZhe0kJ4">pic.twitter.com/VHTZhe0kJ4</a></p>&mdash; Pfizer Inc. (@pfizer) 
+        <a href="https://twitter.com/pfizer/status/1643320747237015554?ref_src=twsrc%5Etfw">April 4, 2023</a>
+      </blockquote> 
+      <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </div>
+
+  <!--
+    The Facebook and LinkedIn examples show how we use the URL of the post
+    to achieve embedding the content.
+  -->
+  <div id="facebook-component">
+    <p>Facebook</p>
+    <!-- <iframe src="https://www.facebook.com/plugins/video.php?height=314&href=https%3A%2F%2Fwww.facebook.com%2FPfizer%2Fvideos%2F2142432462633283%2F&show_text=true&width=560&t=0" width="560" height="429" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowFullScreen="true"></iframe> -->
+  </div>
+
+
+  <div id="linkedin-component">
+    <p>Loading post or article...</p>
+  </div>
+
+  <!-- JavaScript code to load posts -->
+  <script>
+    // URL of the Facebook post to embed
+    const urlFB = 'https://fb.watch/jRw4NLzx4h/';
+    
+    // Load the Facebook post using an iframe
+    const facebookComponent = document.getElementById('facebook-component');
+    facebookComponent.innerHTML = `
+      <iframe src="https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(urlFB)}&width=500" width="500" height="650" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+    `;
+
+    // URL of the tweet to embed
+
+
+
+    // URL of the LinkedIn post or article to embed
+    const urlLinkedIn = 'https://www.linkedin.com/posts/linkedinlearning_how-to-speak-up-for-yourself-activity-6816337261631244800-a5nZ';
+    
+    // Load the LinkedIn post or article using an iframe
+    const linkedinComponent = document.getElementById('linkedin-component');
+    linkedinComponent.innerHTML = `
+      <iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:${encodeURIComponent(urlLinkedIn)}" height="500" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+    `;
+  </script>
+
+</body>
+</html>
